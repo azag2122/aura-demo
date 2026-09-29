@@ -11,35 +11,141 @@
   <title>Aura</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; touch-action: manipulation; overscroll-behavior: none; }
-    .app { position: relative; width: 100%; height: 100%; max-width: 480px; margin: 0 auto; background: #111; overflow: hidden; }
-    .home { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; z-index: 1; pointer-events: none; user-select: none; -webkit-user-drag: none; }
-    .hit-offer { position: absolute; z-index: 2; left: 7%; top: 68%; width: 36%; height: 6.5%; border: 0; background: transparent; border-radius: 999px; cursor: pointer; }
-    .hit-offer:active { background: rgba(255,255,255,0.08); }
-    .scrim { position: absolute; inset: 0; z-index: 3; background: rgba(30,0,50,0.35); opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #0a0a0a;
+      overflow: hidden;
+      touch-action: manipulation;
+      overscroll-behavior: none;
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    }
+    .stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+    .phone {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-height: 100%;
+      aspect-ratio: 926 / 1224;
+      max-width: min(100vw, calc(100vh * 926 / 1224));
+      background: #111;
+      overflow: hidden;
+    }
+    .home {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      z-index: 1;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    /* Large tap zone over Get Offer promo card */
+    .hit-offer {
+      position: absolute;
+      z-index: 2;
+      left: 4%;
+      top: 62%;
+      width: 58%;
+      height: 22%;
+      border: 0;
+      background: transparent;
+      border-radius: 16px;
+      cursor: pointer;
+    }
+    .hit-offer:active { background: rgba(233, 30, 140, 0.12); }
+    /* Also tap the bottom promo strip */
+    .hit-strip {
+      position: absolute;
+      z-index: 2;
+      left: 0;
+      right: 0;
+      top: 58%;
+      bottom: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+    .scrim {
+      position: absolute; inset: 0; z-index: 3;
+      background: rgba(20, 0, 40, 0.4);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
     .scrim.open { opacity: 1; pointer-events: auto; }
-    .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; width: 100%; transform: translate3d(0, 105%, 0); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); will-change: transform; pointer-events: none; }
+    .sheet {
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 4;
+      width: 100%;
+      transform: translate3d(0, 105%, 0);
+      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      will-change: transform;
+      pointer-events: none;
+    }
     .sheet.open { transform: translate3d(0, 0, 0); pointer-events: auto; }
-    .sheet img { display: block; width: 100%; height: auto; max-height: 85vh; object-fit: contain; object-position: bottom; user-select: none; -webkit-user-drag: none; filter: drop-shadow(0 -10px 30px rgba(0,0,0,0.4)); }
-    .hit-close { position: absolute; top: 1.5%; right: 2%; width: 14%; aspect-ratio: 1; border: 0; background: transparent; border-radius: 50%; cursor: pointer; z-index: 5; }
+    .sheet img {
+      display: block; width: 100%; height: auto;
+      max-height: 88vh;
+      object-fit: contain; object-position: bottom;
+      user-select: none; -webkit-user-drag: none;
+      filter: drop-shadow(0 -12px 28px rgba(0,0,0,0.45));
+    }
+    .hit-close {
+      position: absolute; top: 1%; right: 1.5%;
+      width: 16%; aspect-ratio: 1;
+      border: 0; background: transparent;
+      border-radius: 50%; cursor: pointer; z-index: 5;
+    }
+    .hint {
+      position: absolute; z-index: 2; left: 50%; bottom: 2.5%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      pointer-events: none;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
-  <div class="app">
-    <img class="home" src="home-v2.png" alt="Aura" draggable="false" />
-    <button type="button" class="hit-offer" id="open" aria-label="Get Offer"></button>
-    <div class="scrim" id="scrim"></div>
-    <div class="sheet" id="sheet" role="dialog" aria-modal="true">
-      <img src="sheet-v2.png" alt="Scan to Redeem" draggable="false" />
-      <button type="button" class="hit-close" id="close" aria-label="Close"></button>
+  <div class="stage">
+    <div class="phone" id="phone">
+      <img class="home" src="home-v2.png" alt="Aura" draggable="false" />
+      <button type="button" class="hit-strip" id="openStrip" aria-label="Open offer"></button>
+      <button type="button" class="hit-offer" id="open" aria-label="Get Offer"></button>
+      <div class="scrim" id="scrim"></div>
+      <div class="sheet" id="sheet" role="dialog" aria-modal="true">
+        <img src="sheet-v2.png" alt="Scan to Redeem" draggable="false" />
+        <button type="button" class="hit-close" id="close" aria-label="Close"></button>
+      </div>
+      <div class="hint">Tap Get Offer</div>
     </div>
   </div>
   <script>
     const sheet = document.getElementById("sheet");
     const scrim = document.getElementById("scrim");
-    const open = () => { sheet.classList.add("open"); scrim.classList.add("open"); };
-    const close = () => { sheet.classList.remove("open"); scrim.classList.remove("open"); };
+    const hint = document.querySelector(".hint");
+    const open = () => {
+      sheet.classList.add("open");
+      scrim.classList.add("open");
+      if (hint) hint.style.display = "none";
+    };
+    const close = () => {
+      sheet.classList.remove("open");
+      scrim.classList.remove("open");
+    };
     document.getElementById("open").addEventListener("click", open);
+    document.getElementById("openStrip").addEventListener("click", open);
     document.getElementById("close").addEventListener("click", close);
     scrim.addEventListener("click", close);
   </script>
